@@ -22,6 +22,7 @@
 
 #include <linux/string.h>
 #include <linux/rtc.h>
+#include <linux/time.h>
 
 #include "gim_adapter.h"
 #include "gim_monitor.h"
@@ -950,11 +951,11 @@ static int amdgim_op_gpuvf_vf(char *param, void *obj, void *result)
 	unsigned int temp;
 	unsigned int vf_candidate;
 
-	struct timeval cur_time;
+	struct TIMEVALTYPE cur_time;
 	struct function *p_func;
 	struct partition *part;
 	struct adapter *p_adapter;
-	struct timespec kernel_time;
+	struct TIMESPECTYPE kernel_time;
 	struct amdgim_vf_detail *vfdetail;
 
 	p_func = (struct function *)obj;
@@ -1010,7 +1011,8 @@ static int amdgim_op_gpuvf_vf(char *param, void *obj, void *result)
 		 */
 		if (vfdetail->gpu_active_vf == 1
 			&& p_adapter->switch_to_itself == false) {
-			getnstimeofday(&kernel_time);
+//			getnstimeofday(&kernel_time);
+			ktime_get_real_ts64(&kernel_time);
 			vfdetail->vf_active_section += kernel_time.tv_sec
 				 - p_func->time_log.active_last_tick.tv_sec;
 		}
@@ -1740,7 +1742,7 @@ static int amdgim_op2str_gpuvf_vf(void *obj, char *str)
 
 	/* init start */
 	if (vfdetail->time_log.init_start.tv_sec > 0) {
-		rtc_time_to_tm(vfdetail->time_log.init_start.tv_sec
+		rtc_time64_to_tm(vfdetail->time_log.init_start.tv_sec
 				- sys_tz.tz_minuteswest * 60, &tm);
 		sprintf(buf, "\t\tVF Last Init Start:" TIME_FMRT,
 				tm.tm_year + 1900,
@@ -1756,7 +1758,7 @@ static int amdgim_op2str_gpuvf_vf(void *obj, char *str)
 
 	/* init end */
 	if (vfdetail->time_log.init_end.tv_sec > 0) {
-		rtc_time_to_tm(vfdetail->time_log.init_end.tv_sec
+		rtc_time64_to_tm(vfdetail->time_log.init_end.tv_sec
 				- sys_tz.tz_minuteswest * 60, &tm);
 		sprintf(buf, "\t\tVF Last Init Finish:" TIME_FMRT,
 				tm.tm_year + 1900,
@@ -1772,7 +1774,7 @@ static int amdgim_op2str_gpuvf_vf(void *obj, char *str)
 
 	/* finish start */
 	if (vfdetail->time_log.finish_start.tv_sec > 0) {
-		rtc_time_to_tm(vfdetail->time_log.finish_start.tv_sec
+		rtc_time64_to_tm(vfdetail->time_log.finish_start.tv_sec
 				- sys_tz.tz_minuteswest * 60, &tm);
 		sprintf(buf, "\t\tVF Last Shutdown Start:" TIME_FMRT,
 				tm.tm_year + 1900,
@@ -1787,7 +1789,7 @@ static int amdgim_op2str_gpuvf_vf(void *obj, char *str)
 	strcat(str, buf);
 	/* finish end */
 	if (vfdetail->time_log.finish_end.tv_sec > 0) {
-		rtc_time_to_tm(vfdetail->time_log.finish_end.tv_sec
+		rtc_time64_to_tm(vfdetail->time_log.finish_end.tv_sec
 				- sys_tz.tz_minuteswest * 60, &tm);
 		sprintf(buf,
 			"\t\tVF Last Shutdown Finish:" TIME_FMRT,
@@ -1804,7 +1806,7 @@ static int amdgim_op2str_gpuvf_vf(void *obj, char *str)
 
 	/* reset time */
 	if (vfdetail->time_log.reset_time.tv_sec > 0) {
-		rtc_time_to_tm(vfdetail->time_log.reset_time.tv_sec
+		rtc_time64_to_tm(vfdetail->time_log.reset_time.tv_sec
 				 - sys_tz.tz_minuteswest * 60,
 				 &tm);
 		sprintf(buf,
